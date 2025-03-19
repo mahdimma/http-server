@@ -6,9 +6,12 @@ def main():
     print("Logs from your program will appear here!")
 
     # Uncomment this to pass the first stage
-    
+
     server_socket = socket.create_server(("localhost", 4221), reuse_port=True)
-    server_socket.accept() # wait for client
+    clientSocket, clientAddress = server_socket.accept()  # wait for client
+    # Send a simple HTTP response
+    response = b"""HTTP/1.1 200 OK\r\n\r\n"""
+    clientSocket.sendall(response)
 
 
 if __name__ == "__main__":
