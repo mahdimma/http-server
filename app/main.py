@@ -13,7 +13,8 @@ def main():
     request = clientSocket.recv(1024)  # receive the client request
     request = request.decode("utf-8")
     print(f"Received request: {request}")
-    requestLine, headers, body = request.split("\r\n", maxsplit=2)
+    requestLine, remain = request.split("\r\n", maxsplit=1)
+    headers, body = remain.split("\r\n\r\n", maxsplit=1)
     originFormAddress = requestLine.split()[1]
     if originFormAddress == "/":
         clientSocket.sendall(
@@ -22,6 +23,11 @@ def main():
     elif originFormAddress.startswith("/echo"):
         clientSocket.sendall(
             f"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {len(originFormAddress) - 6}\r\n\r\n{originFormAddress[6:]}".encode()
+        )
+    elif originFormAddress.startswith("/user-agent"):
+        userAgentText = headers.split("\r\n")[1].split(": ")[1]
+        clientSocket.sendall(
+            f"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {len(userAgentText)}\r\n\r\n{userAgentText}".encode()
         )
     else:
         clientSocket.sendall(b"HTTP/1.1 404 Not Found\r\n\r\n")
