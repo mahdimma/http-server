@@ -17,7 +17,7 @@ def main():
     originFormAddress = requestLine.split()[1]
     if originFormAddress == "/":
         clientSocket.sendall(
-            b"HTTP/1.1 200 OK\r\nhost: localhost:4221\r\nHello, World!\r\n\r\n"
+            b"HTTP/1.1 200 OK\r\nhost: localhost:4221\r\n\r\nHello, World!"
         )
     elif originFormAddress.startswith("/echo"):
         clientSocket.sendall(
