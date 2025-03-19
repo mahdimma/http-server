@@ -2,7 +2,7 @@ import socket  # noqa: F401
 import threading
 
 
-async def handle_request(clientSocket: socket.socket) -> None:
+def handle_request(clientSocket: socket.socket) -> None:
     try:
         request = clientSocket.recv(1024)  # receive the client request
         request = request.decode("utf-8")
