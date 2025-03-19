@@ -10,32 +10,44 @@ def handle_request(clientSocket: socket.socket, path: str) -> None:
         print(f"Received request: {request}")
         requestLine, remain = request.split("\r\n", maxsplit=1)
         headers, body = remain.split("\r\n\r\n", maxsplit=1)
+        httpMethod = requestLine.split()[0]
         originFormAddress = requestLine.split()[1]
-        if originFormAddress == "/":
-            clientSocket.sendall(b"HTTP/1.1 200 OK\r\n\r\n")
-        elif originFormAddress.startswith("/echo"):
-            clientSocket.sendall(
-                f"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {len(originFormAddress) - 6}\r\n\r\n{originFormAddress[6:]}".encode()
-            )
-        elif originFormAddress.startswith("/user-agent"):
-            userAgentText = headers.split("\r\n")[1].split(": ")[1]
-            clientSocket.sendall(
-                f"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {len(userAgentText)}\r\n\r\n{userAgentText}".encode()
-            )
-        elif originFormAddress.startswith("/file"):
-            if not path:
-                clientSocket.sendall(b"HTTP/1.1 404 Not Found\r\n\r\n")
-                return
-            try:
-                with open(path + originFormAddress[6:], "r") as file:
-                    fileContent = file.read()
+        match httpMethod:
+            case "POST":
+                if originFormAddress.startswith("/files"):
+                    if not path:
+                        clientSocket.sendall(b"HTTP/1.1 404 Not Found\r\n\r\n")
+                        return
+                    with open(path + originFormAddress[7:], "w") as file:
+                        file.write(body)
+                    clientSocket.sendall(b"HTTP/1.1 201 Created\r\n\r\n")
+            case "GET":
+                if originFormAddress == "/":
+                    clientSocket.sendall(b"HTTP/1.1 200 OK\r\n\r\n")
+                elif originFormAddress.startswith("/echo"):
                     clientSocket.sendall(
-                        f"HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: {len(fileContent)}\r\n\r\n{fileContent}".encode()
+                        f"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {len(originFormAddress) - 6}\r\n\r\n{originFormAddress[6:]}".encode()
                     )
-            except FileNotFoundError:
-                clientSocket.sendall(b"HTTP/1.1 404 Not Found\r\n\r\n")
-        else:
-            clientSocket.sendall(b"HTTP/1.1 404 Not Found\r\n\r\n")
+                elif originFormAddress.startswith("/user-agent"):
+                    userAgentText = headers.split("\r\n")[1].split(": ")[1]
+                    clientSocket.sendall(
+                        f"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {len(userAgentText)}\r\n\r\n{userAgentText}".encode()
+                    )
+                elif originFormAddress.startswith("/file"):
+                    if not path:
+                        clientSocket.sendall(b"HTTP/1.1 404 Not Found\r\n\r\n")
+                        return
+                    try:
+                        with open(path + originFormAddress[6:], "r") as file:
+                            fileContent = file.read()
+                            clientSocket.sendall(
+                                f"HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: {len(fileContent)}\r\n\r\n{fileContent}".encode()
+                            )
+                    except FileNotFoundError:
+                        clientSocket.sendall(b"HTTP/1.1 404 Not Found\r\n\r\n")
+                else:
+                    clientSocket.sendall(b"HTTP/1.1 404 Not Found\r\n\r\n")
+
     finally:
         clientSocket.close()
 
