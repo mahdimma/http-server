@@ -33,7 +33,7 @@ def handle_request(clientSocket: socket.socket, path: str) -> None:
                         f"HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: {len(fileContent)}\r\n\r\n{fileContent}".encode()
                     )
             except FileNotFoundError:
-                clientSocket.sendall(b"HTTP/1.1 404 Not Found")
+                clientSocket.sendall(b"HTTP/1.1 404 Not Found\r\n\r\n")
         else:
             clientSocket.sendall(b"HTTP/1.1 404 Not Found\r\n\r\n")
     finally:
@@ -57,7 +57,7 @@ def main(path: str = None):
 
 
 if __name__ == "__main__":
-    if len(sys.argv == 3):
+    if len(sys.argv) == 3:
         main(sys.argv[2])
     else:
         main()
