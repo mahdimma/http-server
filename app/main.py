@@ -13,7 +13,7 @@ def main():
     request = clientSocket.recv(1024)  # receive the client request
     request = request.decode("utf-8")
     print(f"Received request: {request}")
-    requestLine, headers, body = request.split("\r\n")
+    requestLine, headers, body = request.split("\r\n", maxsplit=2)
     if requestLine.split()[1] == "/":
         clientSocket.sendall(b"HTTP/1.1 200 OK\r\n\r\nHello, World!")
     else:
