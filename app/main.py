@@ -14,8 +14,15 @@ def main():
     request = request.decode("utf-8")
     print(f"Received request: {request}")
     requestLine, headers, body = request.split("\r\n", maxsplit=2)
-    if requestLine.split()[1] == "/":
-        clientSocket.sendall(b"HTTP/1.1 200 OK\r\n\r\nHello, World!")
+    originFormAddress = requestLine.split()[1]
+    if originFormAddress == "/":
+        clientSocket.sendall(
+            b"HTTP/1.1 200 OK\r\nhost: localhost:4221\r\nHello, World!\r\n\r\n"
+        )
+    elif originFormAddress.startswith("/echo"):
+        clientSocket.sendall(
+            f"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {len(originFormAddress) - 6}\r\n\r\n{originFormAddress[6:]}".encode()
+        )
     else:
         clientSocket.sendall(b"HTTP/1.1 404 Not Found\r\n\r\n")
 
