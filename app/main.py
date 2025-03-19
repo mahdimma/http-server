@@ -6,6 +6,15 @@ import sys
 SUPPORTED_COMPRESION = ["gzip"]
 
 
+def header_parser(headers: str):
+    headers = headers.split("\r\n")
+    headers_dict = {}
+    for header in headers:
+        key, value = header.split(": ")
+        headers_dict[key] = value
+    return headers_dict
+
+
 def handle_request(clientSocket: socket.socket, path: str) -> None:
     try:
         request = clientSocket.recv(1024)  # receive the client request
@@ -29,16 +38,25 @@ def handle_request(clientSocket: socket.socket, path: str) -> None:
                     clientSocket.sendall(b"HTTP/1.1 200 OK\r\n\r\n")
                 elif originFormAddress.startswith("/echo"):
                     global SUPPORTED_COMPRESION
-                    if "Accept-Encoding" in headers:
-                        if "Accept-Encoding: gzip" in headers:
-                            clientSocket.sendall(
-                                f"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Encoding: gzip\r\nContent-Length: {len(body)}\r\n\r\n{body}".encode()
-                            )
-                        else:
+                    headers = header_parser(headers)
+                    print(headers)
+                    try:
+                        compressed = False
+                        for compression in headers["Accept-Encoding"].split(", "):
+                            if compression in SUPPORTED_COMPRESION:
+                                print(compression)
+                                print(f"i{compression}send")
+                                print(body, len(body))
+                                clientSocket.send(
+                                    f"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Encoding: {compression}\r\nContent-Length: {len(body)}\r\n\r\n{body}".encode()
+                                )
+                                compressed = True
+                                break
+                        if not compressed:
                             clientSocket.sendall(
                                 f"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {len(body)}\r\n\r\n{body}".encode()
                             )
-                    else:
+                    except KeyError as e:
                         clientSocket.sendall(
                             f"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {len(originFormAddress) - 6}\r\n\r\n{originFormAddress[6:]}".encode()
                         )
