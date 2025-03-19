@@ -3,6 +3,9 @@ import threading
 import sys
 
 
+SUPPORTED_COMPRESION = ["gzip"]
+
+
 def handle_request(clientSocket: socket.socket, path: str) -> None:
     try:
         request = clientSocket.recv(1024)  # receive the client request
@@ -25,9 +28,20 @@ def handle_request(clientSocket: socket.socket, path: str) -> None:
                 if originFormAddress == "/":
                     clientSocket.sendall(b"HTTP/1.1 200 OK\r\n\r\n")
                 elif originFormAddress.startswith("/echo"):
-                    clientSocket.sendall(
-                        f"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {len(originFormAddress) - 6}\r\n\r\n{originFormAddress[6:]}".encode()
-                    )
+                    global SUPPORTED_COMPRESION
+                    if "Accept-Encoding" in headers:
+                        if "Accept-Encoding: gzip" in headers:
+                            clientSocket.sendall(
+                                f"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Encoding: gzip\r\nContent-Length: {len(body)}\r\n\r\n{body}".encode()
+                            )
+                        else:
+                            clientSocket.sendall(
+                                f"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {len(body)}\r\n\r\n{body}".encode()
+                            )
+                    else:
+                        clientSocket.sendall(
+                            f"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {len(originFormAddress) - 6}\r\n\r\n{originFormAddress[6:]}".encode()
+                        )
                 elif originFormAddress.startswith("/user-agent"):
                     userAgentText = headers.split("\r\n")[1].split(": ")[1]
                     clientSocket.sendall(
