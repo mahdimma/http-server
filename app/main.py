@@ -7,9 +7,13 @@ import gzip
 SUPPORTED_COMPRESION = ["gzip"]
 
 
-def compress(data: str, compression) -> bytes:
-    return gzip.compress(data.encode("utf-8"))
+def compress(data: str, compression: str) -> bytes:
+    if compression == "gzip":
+        return gzip.compress(data.encode("utf-8"))
+    else:
+        raise NotImplementedError
 
+error_handli
 
 def header_parser(headers: str):
     headers = headers.split("\r\n")
@@ -85,7 +89,8 @@ def handle_request(clientSocket: socket.socket, path: str) -> None:
                         clientSocket.sendall(b"HTTP/1.1 404 Not Found\r\n\r\n")
                 else:
                     clientSocket.sendall(b"HTTP/1.1 404 Not Found\r\n\r\n")
-
+    except Exception as e:
+        print("Error:", e)
     finally:
         clientSocket.close()
 
