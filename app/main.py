@@ -13,7 +13,6 @@ def compress(data: str, compression: str) -> bytes:
     else:
         raise NotImplementedError
 
-error_handli
 
 def header_parser(headers: str):
     headers = headers.split("\r\n")
